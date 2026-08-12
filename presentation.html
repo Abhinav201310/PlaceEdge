@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PlaceEdge — 15-Slide Executive Presentation</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    body { margin: 0; background: #0B1222; font-family: 'Inter', system-ui, sans-serif; color: #F8FAFC; overflow: hidden; }
+    .pres-container { width: 100vw; height: 100vh; display: flex; flex-direction: column; justify-content: space-between; position: relative; }
+    .slide-wrapper { flex: 1; display: flex; align-items: center; justify-content: center; padding: 40px 60px; overflow-y: auto; }
+    .slide { width: 100%; max-width: 1000px; background: rgba(15, 23, 42, 0.85); border: 1px solid var(--border); border-radius: 24px; padding: 40px 50px; box-shadow: 0 25px 60px rgba(0,0,0,0.6); display: none; animation: slideIn 0.4s ease; backdrop-filter: blur(16px); }
+    .slide.active { display: block; }
+    @keyframes slideIn { from { opacity: 0; transform: translateY(15px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
+    .slide-num { font-size: 12px; font-weight: 800; color: var(--accent); letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 8px; }
+    .slide h2 { font-size: 28px; font-weight: 900; margin: 0 0 16px; color: var(--text); letter-spacing: -0.5px; }
+    .slide p, .slide ul { font-size: 15px; line-height: 1.6; color: var(--muted); }
+    .slide ul { padding-left: 20px; }
+    .slide li { margin-bottom: 10px; }
+    .slide-badge { display: inline-block; background: rgba(34,197,94,0.15); color: var(--accent); font-weight: 700; padding: 4px 12px; border-radius: 999px; font-size: 12px; margin-bottom: 16px; }
+    
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px; }
+    .card-box { background: var(--card2); border: 1px solid var(--border); padding: 18px; border-radius: 14px; }
+    .card-box h3 { margin: 0 0 8px; font-size: 16px; color: var(--accent); }
+
+    .pres-footer { padding: 16px 40px; background: rgba(15,23,42,0.9); border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+    .pres-nav { display: flex; gap: 12px; }
+    .pres-btn { background: var(--card2); border: 1px solid var(--border); color: var(--text); padding: 9px 18px; border-radius: 10px; font-weight: 700; font-size: 13px; cursor: pointer; transition: all 0.2s; }
+    .pres-btn:hover { background: var(--accent); color: #052e12; border-color: var(--accent); }
+  </style>
+</head>
+<body>
+
+<div class="pres-container">
+  <div class="slide-wrapper">
+    <!-- SLIDE 1 -->
+    <div class="slide active">
+      <div class="slide-num">SLIDE 01 / 15</div>
+      <span class="slide-badge">EXECUTIVE SUMMARY</span>
+      <h2>🚀 PlaceEdge — Next-Gen AI Placement Preparation Suite</h2>
+      <p style="font-size:17px;color:var(--text)">An all-in-one, offline-first placement readiness command center designed for computer science engineering graduates.</p>
+      <div class="grid-2" style="margin-top:30px">
+        <div class="card-box">
+          <h3>🎯 Purpose</h3>
+          <p>Eliminate scattered preparation and empower students with structured daily roadmaps, AI evaluation, and real company drive intelligence.</p>
+        </div>
+        <div class="card-box">
+          <h3>⚡ Powered By</h3>
+          <p>Groq LLaMA 3.3 70B AI Engine + 75 Real Company Interview PDFs Analysis + LocalStorage & IndexedDB Resilience.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 2 -->
+    <div class="slide">
+      <div class="slide-num">SLIDE 02 / 15</div>
+      <span class="slide-badge">PROBLEM STATEMENT</span>
+      <h2>⚠️ Core Challenges in Campus Placement Preparation</h2>
+      <ul>
+        <li><strong>Scattered & Unstructured Resources:</strong> Students waste 100+ hours hopping across YouTube, LeetCode, and Telegram PDFs without a daily plan.</li>
+        <li><strong>Generic Test Series vs Real Drives:</strong> Traditional platforms test generic math instead of matching company-specific selection rounds (Amazon, TCS NQT, Cognizant GenC).</li>
+        <li><strong>Lack of Instant Feedback:</strong> Students have no way to evaluate ATS resume match, STAR method HR answers, or code complexity without high costs.</li>
+        <li><strong>Server Dependencies & Internet Outages:</strong> Most platforms break without active cloud connections, interrupting offline study sessions.</li>
+      </ul>
+    </div>
+
+    <!-- SLIDE 3 -->
+    <div class="slide">
+      <div class="slide-num">SLIDE 03 / 15</div>
+      <span class="slide-badge">EXECUTIVE SOLUTION</span>
+      <h2>💡 PlaceEdge — The Complete All-in-One Solution</h2>
+      <div class="grid-2">
+        <div class="card-box">
+          <h3>🌐 100% Offline-First Architecture</h3>
+          <p>Runs smoothly in browser storage (LocalStorage + IndexedDB mirror) with zero server delay or downtime.</p>
+        </div>
+        <div class="card-box">
+          <h3>🤖 AI-Native Assistance</h3>
+          <p>Milo 🐾 AI Buddy provides sub-second technical coaching, code complexity analysis, ATS reviews, and HR feedback in 100% Pure English.</p>
+        </div>
+        <div class="card-box">
+          <h3>🗓️ Structured Daily Roadmaps</h3>
+          <p>Includes a 30-Day Placement Sprint, 45-Min Timed Company Mock Tests, and Top 10 Company Selection Roadmaps.</p>
+        </div>
+        <div class="card-box">
+          <h3>📊 Real PDF Data Intelligence</h3>
+          <p>Built from analyzing 75 company interview PDFs (2025 & 2026 batches) with hot-topic tags and company questions.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 4 -->
+    <div class="slide">
+      <div class="slide-num">SLIDE 04 / 15</div>
+      <span class="slide-badge">MARKET POSITIONING</span>
+      <h2>🎯 Target Audience & Value Proposition</h2>
+      <ul>
+        <li><strong>2025 & 2026 Batch Graduates:</strong> Crash-course preparation for upcoming campus placement drives.</li>
+        <li><strong>SDE & Product Role Aspirants:</strong> Advanced DSA, System Design, and timed 45-minute company mock tests.</li>
+        <li><strong>Service-Sector Aspirants (TCS, Infosys, Cognizant, Accenture):</strong> Exact round breakdowns, NQT/GenC syllabus, and SQL/Java drills.</li>
+        <li><strong>College TPO Placement Cells:</strong> Standardized student progress metrics and printable PDF readiness reports.</li>
+      </ul>
+    </div>
+
+    <!-- SLIDE 5 -->
+    <div class="slide">
+      <div class="slide-num">SLIDE 05 / 15</div>
+      <span class="slide-badge">TECHNICAL ARCHITECTURE</span>
+      <h2>🏗️ Modular Architecture & Tech Stack</h2>
+      <ul>
+        <li><strong>Frontend Stack:</strong> HTML5, Vanilla CSS3 (Custom Design Tokens, HSL Palette, Micro-Animations).</li>
+        <li><strong>Modular JavaScript Layer:</strong>
+          <ul>
+            <li><code>js/data.js</code>: Pre-loaded syllabus, 61 company archives, 30-Day Sprint, 10 Roadmaps, Live Jobs.</li>
+            <li><code>js/state.js</code>: Gamification, LocalStorage (<code>placeedge.v1</code>) + IndexedDB Mirror (<code>placeedge-db</code>).</li>
+            <li><code>js/app.js</code>: SPA Router, History API, Modal System, View Renderers.</li>
+          </ul>
+        </li>
+        <li><strong>Groq AI Integration:</strong> LLaMA 3.3 70B model via sub-second REST endpoint.</li>
+      </ul>
+    </div>
+
+    <!-- SLIDE 6 -->
+    <div class="slide">
+      <div class="slide-num">SLIDE 06 / 15</div>
+      <span class="slide-badge">FEATURE SPOTLIGHT 1</span>
+      <h2>🐾 Milo AI Placement Prep Buddy</h2>
+      <ul>
+        <li><strong>Floating Chat Drawer:</strong> Accessible from any page via quick-launch button.</li>
+        <li><strong>1-Click Quick Prompts:</strong> Fast answers for Amazon top questions, OOP pillars, SQL hot topics, and DSA speed tips.</li>
+        <li><strong>Strict Pure English Output:</strong> Structured bullet points, code snippets, and time complexity explanations.</li>
+        <li><strong>Zero Context Loss:</strong> Preserves user conversation history for follow-up technical questions.</li>
+      </ul>
+    </div>
+
+    <!-- SLIDE 7 -->
+    <div class="slide">
+      <div class="slide-num">SLIDE 07 / 15</div>
+      <span class="slide-badge">FEATURE SPOTLIGHT 2</span>
+      <h2>⏱️ 45-Min Company Mock Interview Simulator</h2>
+      <ul>
+        <li><strong>Timed Real Exam Conditions:</strong> Live 45:00 countdown timer with auto-submit upon timeout.</li>
+        <li><strong>Company-Specific Drives:</strong> Select from Amazon, Fidelity, Akamai, TCS, Oracle, MiQ, and more.</li>
+        <li><strong>5-Question Structured Format:</strong>
+          <ul>
+            <li>🧠 2 DSA Coding Questions</li>
+            <li>📚 2 Core CS Theory Questions (DBMS, OS, OOP)</li>
+            <li>🧮 1 SQL Query Round Question</li>
+          </ul>
+        </li>
+        <li><strong>Instant Milo AI Scorecard:</strong> Generates section scores, overall score out of 100%, and feedback.</li>
+      </ul>
+    </div>
+
+    <!-- SLIDE 8 -->
+    <div class="slide">
+      <div class="slide-num">SLIDE 08 / 15</div>
+      <span class="slide-badge">FEATURE SPOTLIGHT 3</span>
+      <h2>🎯 Top 10 Company-Wise Roadmaps</h2>
+      <p style="color:var(--text)">Detailed round-by-round selection process and syllabus breakdown for 10 major recruiters:</p>
+      <div class="grid-2">
+        <div class="card-box">
+          <h3>Tier 1 Product Companies</h3>
+          <p>🚀 <strong>Amazon</strong> (₹18-28L) · 🔴 <strong>Oracle</strong> (₹12-18L) · 🌐 <strong>Akamai</strong> (₹10-15L) · 🏦 <strong>Fidelity</strong> (₹8-12L)</p>
+        </div>
+        <div class="card-box">
+          <h3>Mass Recruiters & Tech Leaders</h3>
+          <p>🏢 <strong>TCS (NQT)</strong> · 💼 <strong>Cognizant (GenC)</strong> · 🔷 <strong>Infosys</strong> · ⚡ <strong>Accenture</strong> · 📊 <strong>MiQ</strong> · 🛒 <strong>Lowe's</strong></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 9 -->
+    <div class="slide">
+      <div class="slide-num">SLIDE 09 / 15</div>
+      <span class="slide-badge">FEATURE SPOTLIGHT 4</span>
+      <h2>🗓️ 30-Day Placement Crash Course Sprint</h2>
+      <ul>
+        <li><strong>Structured Daily Checklist:</strong> Day 1 to 30 systematic coverage of high-yield placement topics.</li>
+        <li><strong>Balanced Topic Mix:</strong> OOP Foundations, SQL Joins, DBMS Keys, OS Paging/Deadlocks, Computer Networks, DSA Patterns, and System Design.</li>
+        <li><strong>XP Rewards & Tracking:</strong> Earn +15 to +30 XP per completed day with live progress indicators.</li>
+        <li><strong>Dashboard Sync:</strong> Highlights current target day on the main dashboard home.</li>
+      </ul>
+    </div>
+
+    <!-- SLIDE 10 -->
+    <div class="slide">
+      <div class="slide-num">SLIDE 10 / 15</div>
+      <span class="slide-badge">FEATURE SPOTLIGHT 5</span>
+      <h2>📄 AI Resume Bullet & ATS Score Checker</h2>
+      <ul>
+        <li><strong>Role-Specific Evaluation:</strong> Tailored for SDE 1, Frontend, Backend, Data Analyst, or Full Stack roles.</li>
+        <li><strong>Instant ATS Score Match:</strong> Calculates ATS compatibility score percentage.</li>
+        <li><strong>Action Verb & Keyword Analysis:</strong> Identifies missing technical action verbs and industry keywords.</li>
+        <li><strong>STAR Method Bullet Rewriter:</strong> Rewrites raw descriptions into high-impact, metric-driven STAR bullets.</li>
+      </ul>
+    </div>
+
+    <!-- SLIDE 11 -->
+    <div class="slide">
+      <div class="slide-num">SLIDE 11 / 15</div>
+      <span class="slide-badge">FEATURE SPOTLIGHT 6</span>
+      <h2>🎙️ HR STAR Method Practice Studio</h2>
+      <ul>
+        <li><strong>Top 15 HR Interview Questions:</strong> Practice "Tell me about yourself", "Conflict resolution", "Why our company?", and salary expectations.</li>
+        <li><strong>Interviewer Strategy Tips:</strong> Guidance on structuring responses into Situation, Task, Action, and Result.</li>
+        <li><strong>Milo AI Feedback:</strong> Gives an instant STAR Rating out of 10 with actionable advice to sound more confident and professional.</li>
+      </ul>
+    </div>
+
+    <!-- SLIDE 12 -->
+    <div class="slide">
+      <div class="slide-num">SLIDE 12 / 15</div>
+      <span class="slide-badge">FEATURE SPOTLIGHT 7</span>
+      <h2>💼 Live Tech Hiring Drives (< 7 Days)</h2>
+      <ul>
+        <li><strong>Fresh Hiring Feed:</strong> Active off-campus and mass hiring drives posted within the last 7 days.</li>
+        <li><strong>Verified Opportunities:</strong> TCS NQT 2026, Cognizant GenC 24,000+ drive, Accenture ASE, Infosys DSE, Amazon SDE-1, Philips, Applied Materials, Unthinkable.</li>
+        <li><strong>Full Details & Direct Apply:</strong> Role, batch eligibility, CTC package, locations, skill tags, and direct official career links.</li>
+      </ul>
+    </div>
+
+    <!-- SLIDE 13 -->
+    <div class="slide">
+      <div class="slide-num">SLIDE 13 / 15</div>
+      <span class="slide-badge">GAMIFICATION & ANALYTICS</span>
+      <h2>🔥 Heatmap, Streaks & Achievements Vault</h2>
+      <ul>
+        <li><strong>GitHub-Style Contribution Heatmap:</strong> Visual 52-week grid tracking daily study items and XP.</li>
+        <li><strong>Streaks & Level Progress:</strong> Level 1 to 10+ progression with level-up confetti animations.</li>
+        <li><strong>19 Unlockable Trophies:</strong> Badges for first topic, 10/50/100 topics, Blind 75 finisher, 7/30-day streaks, and 70%+ readiness.</li>
+        <li><strong>Analytics Page:</strong> Completion breakdown by subject, monthly XP trends, and difficulty distribution.</li>
+      </ul>
+    </div>
+
+    <!-- SLIDE 14 -->
+    <div class="slide">
+      <div class="slide-num">SLIDE 14 / 15</div>
+      <span class="slide-badge">COMPETITIVE ADVANTAGE</span>
+      <h2>⚔️ Key Differentiators</h2>
+      <div class="grid-2">
+        <div class="card-box">
+          <h3>Traditional Platforms</h3>
+          <p>❌ High server & database maintenance costs<br>❌ Generic non-company questions<br>❌ Breaks without active internet<br>❌ No AI ATS or HR evaluation</p>
+        </div>
+        <div class="card-box">
+          <h3>PlaceEdge Suite</h3>
+          <p>✅ Zero server cost (Client-Side SPA)<br>✅ Data from 75 real company PDFs<br>✅ 100% Offline functional + IDB mirror<br>✅ Groq AI ATS, Mock & HR evaluation</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 15 -->
+    <div class="slide">
+      <div class="slide-num">SLIDE 15 / 15</div>
+      <span class="slide-badge">CONCLUSION & ROADMAP</span>
+      <h2>🚀 Conclusion & Future Expansion</h2>
+      <p style="color:var(--text)">PlaceEdge empowers students with a predictable, data-backed, and gamified roadmap to crack tech campus placements.</p>
+      <ul>
+        <li><strong>Live GitHub Repo:</strong> <a href="https://github.com/Abhinav201310/PlaceEdge" target="_blank" style="color:var(--accent)">github.com/Abhinav201310/PlaceEdge</a></li>
+        <li><strong>Live Deployment:</strong> Vercel Ready</li>
+        <li><strong>Future Phase 2 Roadmap:</strong> Voice HR Audio Recording, 1-Click Student Webpage Portfolio Generator, Peer Mock Leaderboard.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="pres-footer">
+    <div style="font-weight:700;font-size:14px;color:var(--muted)">PlaceEdge Presentation Deck</div>
+    <div class="pres-nav">
+      <button class="pres-btn" onclick="prevSlide()">‹ Previous</button>
+      <span id="slide-indicator" style="display:flex;align-items:center;font-size:13px;font-weight:800;color:var(--accent)">1 / 15</span>
+      <button class="pres-btn" onclick="nextSlide()">Next ›</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  let curSlide = 0;
+  const slides = document.querySelectorAll('.slide');
+  const indicator = document.getElementById('slide-indicator');
+
+  function showSlide(idx) {
+    slides.forEach((s, i) => s.classList.toggle('active', i === idx));
+    indicator.textContent = `${idx + 1} / ${slides.length}`;
+  }
+
+  function nextSlide() {
+    if (curSlide < slides.length - 1) { curSlide++; showSlide(curSlide); }
+  }
+
+  function prevSlide() {
+    if (curSlide > 0) { curSlide--; showSlide(curSlide); }
+  }
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === 'Space') nextSlide();
+    if (e.key === 'ArrowLeft') prevSlide();
+  });
+</script>
+</body>
+</html>
