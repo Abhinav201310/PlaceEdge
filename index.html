@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PlaceEdge — Placement Preparation Dashboard</title>
+  <link rel="stylesheet" href="css/style.css">
+  <script src="config.js"></script>
+</head>
+<body class="anim">
+
+<div class="app">
+  <!-- Sidebar Navigation -->
+  <aside class="sidebar" id="sidebar">
+    <div class="logo">
+      <div class="pe-badge">PE</div>
+      <div>PlaceEdge<small>PLACEMENT DASHBOARD</small></div>
+    </div>
+    <nav class="nav" id="nav"></nav>
+    <div class="side-foot">
+      <div class="lvl-chip">
+        <span style="font-size:16px">⭐</span>
+        <div style="flex:1">
+          <div style="display:flex;justify-content:space-between">
+            <span id="side-level">Level 1</span>
+            <span id="side-xp" style="color:var(--accent);font-weight:700">0 XP</span>
+          </div>
+          <div class="bar" style="margin-top:4px"><i id="side-xpbar" style="width:0%"></i></div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main View -->
+  <main class="main">
+    <header class="topbar">
+      <div style="display:flex;align-items:center;gap:12px">
+        <button class="mob-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')">☰</button>
+        <button class="back-btn" id="back-btn" onclick="goBack()" title="Back">‹</button>
+        <div>
+          <h1 id="page-title">Dashboard</h1>
+          <div class="sub" id="page-sub">Your placement journey at a glance</div>
+        </div>
+      </div>
+      <div class="top-chips">
+        <div class="chip"><span class="ico">🔥</span><span id="chip-streak">0 day streak</span></div>
+        <div class="chip" style="border-color:rgba(34,197,94,.3)"><span class="ico">💎</span><span id="chip-xp" style="color:var(--accent)">0 XP</span></div>
+      </div>
+    </header>
+
+    <div id="view"></div>
+  </main>
+</div>
+
+<!-- 🐾 CUTE AI ASSISTANT: MILO -->
+<button id="milo-fab" onclick="toggleMiloChat()" title="Chat with Milo 🐾">
+  <span class="milo-avatar">🐶</span>
+  <span class="milo-badge">AI</span>
+</button>
+
+<div id="milo-chat-drawer">
+  <div class="milo-header">
+    <div style="display:flex;align-items:center;gap:10px;">
+      <div class="milo-hdr-avatar">🐶</div>
+      <div>
+        <div style="font-weight:800;font-size:15px;color:var(--text);display:flex;align-items:center;gap:6px;">
+          Milo <span style="font-size:12px;">🐾</span>
+          <span style="font-size:10px;background:rgba(34,197,94,0.15);color:#22c55e;padding:2px 6px;border-radius:999px;font-weight:700;">Online</span>
+        </div>
+        <div style="font-size:11px;color:var(--muted);">Your Placement Prep AI Buddy</div>
+      </div>
+    </div>
+    <button class="milo-close-btn" onclick="toggleMiloChat()">✕</button>
+  </div>
+
+  <div class="milo-prompts">
+    <button onclick="sendMiloQuickPrompt('What are the top 5 questions for Amazon placement interviews?')">🚀 Amazon Top 5</button>
+    <button onclick="sendMiloQuickPrompt('Explain 4 Pillars of OOP in 2 minutes')">🧩 4 Pillars OOP</button>
+    <button onclick="sendMiloQuickPrompt('What are the most repeated SQL topics in placement drives?')">🧮 HOT SQL Topics</button>
+    <button onclick="sendMiloQuickPrompt('How can I improve my DSA problem solving speed?')">⚡ DSA Speed Tips</button>
+  </div>
+
+  <div id="milo-chat-body">
+    <div class="milo-msg milo-bot">
+      <div class="milo-bubble">
+        Hi there! 🐶 I'm <strong>Milo</strong>, your placement prep buddy! Ask me anything about DSA, Coding, System Design, SQL, OS, or company interview questions. How can I help you today? ✨
+      </div>
+    </div>
+  </div>
+
+  <div class="milo-input-wrap">
+    <input type="text" id="milo-input" placeholder="Ask Milo anything... (Press Enter)" onkeydown="if(event.key==='Enter') sendMiloMsg()">
+    <button id="milo-send-btn" onclick="sendMiloMsg()">🐾</button>
+  </div>
+</div>
+
+<!-- Global Modal and Toasts -->
+<div class="modal-bg" id="modal-bg">
+  <div class="modal" id="modal"></div>
+</div>
+<div id="toasts"></div>
+<canvas id="confetti-canvas"></canvas>
+
+<!-- Modular Script Layer -->
+<script src="js/data.js"></script>
+<script src="js/state.js"></script>
+<script src="js/app.js" defer></script>
+</body>
+</html>
