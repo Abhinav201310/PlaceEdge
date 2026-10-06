@@ -21,6 +21,27 @@ let S=loadState();
 let saveCount=0; // tracks milestones since last auto-export
 
 /* ============================================================
+   CHANGE STAMPS · for cross-device sync
+   Every topic/problem entry carries `u` = last-modified time.
+   save() diffs entries against a shadow copy and stamps the
+   changed ones, so the sync merge can pick the newest per key
+   without touching every place that edits S.
+   ============================================================ */
+let _shadow={t:{},p:{}};
+const _entrySig=v=>JSON.stringify({...v,u:undefined});   // signature without the stamp itself
+function resetShadow(){
+  _shadow={t:{},p:{}};
+  for(const k in S.topics) _shadow.t[k]=_entrySig(S.topics[k]);
+  for(const k in S.problems) _shadow.p[k]=_entrySig(S.problems[k]);
+}
+function stampChanges(){
+  const now=Date.now();
+  for(const k in S.topics){ const sig=_entrySig(S.topics[k]); if(_shadow.t[k]!==sig){ S.topics[k].u=now; _shadow.t[k]=sig; } }
+  for(const k in S.problems){ const sig=_entrySig(S.problems[k]); if(_shadow.p[k]!==sig){ S.problems[k].u=now; _shadow.p[k]=sig; } }
+}
+resetShadow();
+
+/* ============================================================
    STORAGE RESILIENCE · IndexedDB mirror
    LocalStorage stays the primary (synchronous) store. On every
    save we also mirror to IndexedDB, which survives some cases
@@ -77,9 +98,11 @@ function loadState(){
   }catch(e){ return clone(DEFAULT_STATE); }
 }
 function save(){
+  stampChanges();
   try{ localStorage.setItem(LS_KEY, JSON.stringify(S)); }
   catch(e){ console.warn('LocalStorage save failed',e); toast('Browser storage is full or blocked — export a backup soon','','⚠️'); }
   if(S.settings.idbMirror) idbPut(S);   // async, non-blocking mirror
+  if(typeof scheduleSync==='function') scheduleSync();   // cloud sync (backend.js), debounced; no-op when logged out
 }
 /* Called by milestone actions (mastering / solving) to trigger periodic auto-export. */
 function maybeAutoExport(){

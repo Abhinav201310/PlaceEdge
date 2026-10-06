@@ -1,6 +1,6 @@
-// PlaceEdge Environment & AI Configuration
+// PlaceEdge · Cloud configuration (Supabase)
+// ------------------------------------------------------------------
 window.ENV_CONFIG = {
-  GROQ_API_KEY: localStorage.getItem('groq_api_key') || "",
-  AI_PROVIDER: "groq",
-  AI_MODEL: "llama-3.3-70b-versatile"
+  SUPABASE_URL: "https://clujtahiawceyjwfnwnh.supabase.co",
+  SUPABASE_ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNsdWp0YWhpYXdjZXlqd2Zud25oIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEyNDk5NjgsImV4cCI6MjEwNjgyNTk2OH0.LmbQ2JTeZJZv_GL2Dg6IciBrkoO--j2byfvN_uWZVmQ"
 };

@@ -135,6 +135,7 @@ const ROUTES=[
  {id:'calendar',ic:'📅',n:'Calendar'},
  {id:'analytics',ic:'📈',n:'Analytics'},
  {id:'achievements',ic:'🏅',n:'Achievements'},
+ {id:'leaderboard',ic:'🏆',n:'Leaderboard'},
  {id:'settings',ic:'⚙️',n:'Settings'},
 ];
 let route={page:'dashboard'};
@@ -161,7 +162,7 @@ function safeBack(){
 function routeToHash(r){
   const p=new URLSearchParams();
   p.set('p', r.page);
-  ['subj','folder','tab','yr','cId','comp'].forEach(k=>{ if(r[k]!==undefined && r[k]!=='' && r[k]!==0) p.set(k, r[k]); });
+  ['subj','folder','tab','yr','cId','comp','day'].forEach(k=>{ if(r[k]!==undefined && r[k]!=='' && r[k]!==0) p.set(k, r[k]); });
   if(r.q) p.set('q', r.q);
   return '#'+p.toString();
 }
@@ -171,14 +172,15 @@ function hashToRoute(){
   if(!h) return {page:'dashboard'};
   const p=new URLSearchParams(h);
   const page=p.get('p')||'dashboard';
-  if(!ROUTES.some(r=>r.id===page)) return {page:'dashboard'};
+  if(!ROUTES.some(r=>r.id===page) && page!=='sprint-exam') return {page:'dashboard'};
   const r={page};
   ['subj','folder','tab','q','cId','comp'].forEach(k=>{ if(p.has(k)) r[k]=p.get(k); });
   if(p.has('yr')) r.yr=+p.get('yr')||0;
+  if(p.has('day')) r.day=+p.get('day')||1;
   return r;
 }
 function sameRoute(a,b){
-  return a.page===b.page && a.subj===b.subj && a.folder===b.folder && a.tab===b.tab && a.cId===b.cId && a.comp===b.comp && (a.yr||0)===(b.yr||0) && (a.q||'')===(b.q||'');
+  return a.page===b.page && a.subj===b.subj && a.folder===b.folder && a.tab===b.tab && a.cId===b.cId && a.comp===b.comp && (a.day||0)===(b.day||0) && (a.yr||0)===(b.yr||0) && (a.q||'')===(b.q||'');
 }
 function go(page, extra={}){
   const next={page, ...extra};
@@ -198,6 +200,7 @@ function parentRoute(){
   if(r.page==='subjects' && r.subj) return {page:'subjects'};
   if(r.page==='dsa' && r.folder) return {page:'dsa', tab:'topics'};
   if(r.page==='dsa' && r.tab && r.tab!=='topics') return {page:'dsa', tab:'topics'};
+  if(r.page==='sprint-exam') return {page:'sprint'};
   if(r.page!=='dashboard') return {page:'dashboard'};
   return null; // already at root
 }
@@ -235,6 +238,8 @@ const PAGE_TITLES={
   calendar:['Study Calendar','GitHub-style consistency tracking'],
   analytics:['Analytics','Where your effort goes'],
   achievements:['Achievements','Milestones on the road to your offer'],
+  leaderboard:['Leaderboard','XP rankings & peer study groups'],
+  'sprint-exam':['Timed Placement Assessment','30-Minute Secure Assessment Environment · 25 Medium & Hard Questions'],
   settings:['Settings','Data, backup & preferences']
 };
 
@@ -260,6 +265,8 @@ function render(){
     calendar:vCalendar,
     analytics:vAnalytics,
     achievements:vAchievements,
+    leaderboard:typeof vLeaderboard==='function'?vLeaderboard:()=>'',
+    'sprint-exam':vSprintExam,
     settings:vSettings
   }[route.page];
   v.innerHTML=fn?fn():'';
@@ -690,7 +697,8 @@ function vAchievements(){
 
 /* ---------- SETTINGS ---------- */
 function vSettings(){
-  return `<div class="card">
+  const acctHtml = typeof accountSettingsHtml === 'function' ? accountSettingsHtml() : '';
+  return `${acctHtml}<div class="card">
     <div class="set-row"><div><h4>📤 Export progress</h4><p>Download all data (topics, problems, XP, notes, calendar) as JSON.</p></div>
       <button class="btn pri" onclick="exportData()">Export JSON</button></div>
     <div class="set-row"><div><h4>📥 Import progress</h4><p>Restore from a previously exported JSON backup.</p></div>
@@ -739,7 +747,7 @@ function importData(input){
 function resetAll(){
   openModal(`<h3>⚠️ Reset everything?</h3><div class="m-sub">All XP, statuses, notes, streaks and achievements will be permanently erased.</div>
     <div class="m-actions"><button class="btn ghost" onclick="closeModal()">Cancel</button>
-    <button class="btn danger" onclick="S=clone(DEFAULT_STATE);saveCount=0;save();idbPut(S);closeModal();toast('Progress reset','','🗑️');render()">Yes, reset</button></div>`);
+    <button class="btn danger" onclick="S=clone(DEFAULT_STATE);saveCount=0;save();idbPut(S);if(typeof forcePush==='function')forcePush();closeModal();toast('Progress reset','','🗑️');render()">Yes, reset</button></div>`);
 }
 
 /* ---------- 🎯 COMPANY-WISE ROADMAPS RENDERER ---------- */
@@ -892,7 +900,7 @@ function vSprint(){
     <div style="font-size:32px">🗓️</div>
     <div style="flex:1;min-width:220px">
       <b>30-Day Placement Crash Course Sprint</b>
-      <div style="font-size:12px;color:var(--muted);margin:3px 0 8px">Daily structured checklist for high-yield placement preparation · ${doneDays}/30 Days Completed</div>
+      <div style="font-size:12px;color:var(--muted);margin:3px 0 8px">Daily structured checklist with 25 Medium &amp; Hard Placement MCQs per day · ${doneDays}/30 Days Completed</div>
       <div class="pbar"><i data-w="${pct}" style="background:linear-gradient(90deg,#0ea5e9,#38bdf8)"></i></div>
     </div>
     <b style="font-size:22px;color:${pct===100?'#4ade80':'#38bdf8'}">${pct}%</b>
@@ -901,6 +909,7 @@ function vSprint(){
   <div class="grid g2">
     ${SPRINT_ROADMAP.map(item=>{
       const isDone = !!S.sprint?.[item.day];
+      const qCount = (typeof SPRINT_MCQ_BANK !== 'undefined' && SPRINT_MCQ_BANK[item.day]) ? SPRINT_MCQ_BANK[item.day].length : 25;
       return `
       <div class="card hoverable ${isDone?'mastered':''}" style="border-left:4px solid ${isDone?'var(--accent)':'var(--border)'}">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
@@ -911,12 +920,399 @@ function vSprint(){
         <div style="font-size:11.5px;color:var(--muted);margin-bottom:12px">
           ${item.topics.map(t=>`<span style="display:inline-block;background:var(--card2);padding:2px 8px;border-radius:6px;margin:2px 4px 2px 0;border:1px solid var(--border)">${esc(t)}</span>`).join('')}
         </div>
-        <button class="btn ${isDone?'ghost':'pri'}" style="width:100%;font-size:12px;padding:6px 12px" onclick="toggleSprintDay(${item.day}, ${item.xp})">
-          ${isDone ? '✓ Day Completed (Click to undo)' : 'Mark Day Completed (+'+item.xp+' XP)'}
-        </button>
+        
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn pri" style="flex:1;font-size:12px;padding:8px 12px;background:var(--accent);color:#052e12;font-weight:800" onclick="startSprintSecureExam(${item.day})">
+            🚀 Take 25 MCQs Test (30 Min)
+          </button>
+          <button class="btn ${isDone?'ghost':'pri'}" style="flex:1;font-size:12px;padding:8px 12px" onclick="toggleSprintDay(${item.day}, ${item.xp})">
+            ${isDone ? '✓ Completed' : 'Mark Done (+'+item.xp+' XP)'}
+          </button>
+        </div>
       </div>`;
     }).join('')}
   </div>`;
+}
+
+/* ---------- 🛡️ SECURE 30-MINUTE SPRINT EXAM PAGE ENGINE ---------- */
+let examTimerInterval = null;
+let examTimeLeft = 1800; // 30 minutes in seconds
+let examCurrentQ = 0;
+let examAnswers = {};
+let examSubmitted = false;
+
+function startSprintSecureExam(dayNum){
+  examTimeLeft = 1800;
+  examCurrentQ = 0;
+  examAnswers = {};
+  examSubmitted = false;
+  if(examTimerInterval) clearInterval(examTimerInterval);
+  go('sprint-exam', { day: dayNum });
+}
+
+function vSprintExam(){
+  const dayNum = route.day || 1;
+  const item = SPRINT_ROADMAP.find(x=>x.day === dayNum) || SPRINT_ROADMAP[0];
+  const qBank = (typeof SPRINT_MCQ_BANK !== 'undefined' && SPRINT_MCQ_BANK[dayNum]) ? SPRINT_MCQ_BANK[dayNum] : [];
+  
+  if(!qBank.length){
+    return `<div class="card empty"><div class="big">⚠️</div>Questions are loading. Please return to <a href="javascript:go('sprint')">30-Day Sprint</a>.</div>`;
+  }
+
+  // Start timer once view loads
+  if(!examTimerInterval && !examSubmitted){
+    examTimerInterval = setInterval(()=>{
+      examTimeLeft--;
+      const timeEl = document.getElementById('secure-exam-timer');
+      if(timeEl){
+        const m = Math.floor(examTimeLeft / 60);
+        const s = examTimeLeft % 60;
+        timeEl.textContent = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+        if(examTimeLeft <= 300) timeEl.classList.add('urgent');
+      }
+      if(examTimeLeft <= 0){
+        clearInterval(examTimerInterval);
+        toast('Time is up! Submitting your assessment...', '', '⏱️');
+        submitSecureExam(true);
+      }
+    }, 1000);
+  }
+
+  const curQ = qBank[examCurrentQ] || qBank[0];
+  const total = qBank.length;
+  const answeredCount = Object.keys(examAnswers).length;
+  const mins = Math.floor(examTimeLeft / 60);
+  const secs = examTimeLeft % 60;
+
+  return `
+  <!-- Secure Sticky Header -->
+  <div class="exam-header">
+    <div style="display:flex;align-items:center;gap:12px">
+      <button class="mini-btn" onclick="exitSecureExamPrompt()">✕ Exit Test</button>
+      <div>
+        <div style="font-size:14.5px;font-weight:800;color:var(--text)">DAY ${dayNum}: ${esc(item.title)}</div>
+        <div style="font-size:11px;color:var(--muted)">25 Medium &amp; Hard Placement Interview Questions · Negative Marking: None</div>
+      </div>
+    </div>
+
+    <div style="display:flex;align-items:center;gap:14px">
+      <div class="exam-timer-box">
+        <span style="font-size:15px">⏱️</span>
+        <div>
+          <div style="font-size:9.5px;color:var(--muted);font-weight:700">TIME REMAINING</div>
+          <div class="exam-timer-digits ${examTimeLeft<=300?'urgent':''}" id="secure-exam-timer">
+            ${String(mins).padStart(2,'0')}:${String(secs).padStart(2,'0')}
+          </div>
+        </div>
+      </div>
+      ${!examSubmitted ? `
+        <button class="btn pri" style="background:#22c55e;color:#052e12;font-weight:800;padding:9px 16px" onclick="submitSecureExam()">
+          Submit Test 🚀
+        </button>
+      ` : `
+        <button class="btn ghost" onclick="go('sprint')">Return to Sprint</button>
+      `}
+    </div>
+  </div>
+
+  ${examSubmitted ? renderExamScorecard(dayNum, qBank) : ''}
+
+  <!-- Main Question & Palette Layout -->
+  <div class="exam-layout">
+    
+    <!-- Question Card -->
+    <div class="card" style="padding:22px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+        <span style="font-weight:900;font-size:13px;color:var(--accent)">QUESTION ${examCurrentQ + 1} OF ${total}</span>
+        <span style="font-size:11px;background:rgba(245,158,11,0.15);color:var(--amber);padding:3px 10px;border-radius:999px;font-weight:700">
+          ${esc(curQ.diff || 'Medium-Hard')}
+        </span>
+      </div>
+
+      <h3 style="font-size:15.5px;line-height:1.5;margin-bottom:20px;color:var(--text);font-weight:700">
+        ${esc(curQ.q)}
+      </h3>
+
+      <div style="display:flex;flex-direction:column;gap:10px">
+        ${curQ.opts.map((opt, oIdx)=>{
+          const isSelected = examAnswers[examCurrentQ] === oIdx;
+          const letter = String.fromCharCode(65 + oIdx);
+          let extraStyle = '';
+          if(examSubmitted){
+            if(oIdx === curQ.ans) extraStyle = 'border-color:var(--accent);background:rgba(34,197,94,0.15);';
+            else if(isSelected && oIdx !== curQ.ans) extraStyle = 'border-color:var(--rose);background:rgba(244,63,94,0.15);';
+          }
+          return `
+          <div class="opt-choice-row ${isSelected?'selected':''}" style="${extraStyle}" onclick="selectExamChoice(${examCurrentQ}, ${oIdx})">
+            <span class="opt-badge">${letter}</span>
+            <span style="flex:1;line-height:1.4">${esc(opt)}</span>
+          </div>`;
+        }).join('')}
+      </div>
+
+      ${examSubmitted ? `
+        <div style="margin-top:20px;padding:14px;background:var(--card2);border-radius:12px;border-left:4px solid var(--accent);font-size:13px;line-height:1.6">
+          <b style="color:var(--accent)">💡 Correct Answer: Option ${String.fromCharCode(65 + curQ.ans)}</b>
+          <div style="color:var(--text);margin-top:6px">${esc(curQ.exp)}</div>
+        </div>
+      ` : ''}
+
+      <div style="display:flex;justify-content:space-between;margin-top:24px;border-top:1px solid var(--border);padding-top:16px">
+        <button class="btn ghost" ${examCurrentQ===0?'disabled':''} onclick="switchExamQuestion(${examCurrentQ - 1})">
+          ‹ Previous
+        </button>
+        <button class="btn pri" ${examCurrentQ===total-1?'disabled':''} onclick="switchExamQuestion(${examCurrentQ + 1})">
+          Next Question ›
+        </button>
+      </div>
+    </div>
+
+    <!-- Question Palette Sidebar -->
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <b style="font-size:13.5px">Question Palette</b>
+        <span style="font-size:12px;color:var(--accent);font-weight:700">${answeredCount}/${total} Attempted</span>
+      </div>
+
+      <div class="exam-nav-grid">
+        ${qBank.map((_, i)=>{
+          const isAnswered = examAnswers[i] !== undefined;
+          const isActive = examCurrentQ === i;
+          return `
+          <button class="exam-nav-btn ${isActive?'active':''} ${isAnswered?'answered':''}" onclick="switchExamQuestion(${i})">
+            ${i + 1}
+          </button>`;
+        }).join('')}
+      </div>
+
+      <div style="margin-top:16px;border-top:1px solid var(--border);padding-top:12px;font-size:11.5px;color:var(--muted);display:flex;flex-direction:column;gap:6px">
+        <div style="display:flex;align-items:center;gap:6px">
+          <span style="width:10px;height:10px;background:var(--accent);border-radius:3px;display:inline-block"></span>
+          Answered (${answeredCount})
+        </div>
+        <div style="display:flex;align-items:center;gap:6px">
+          <span style="width:10px;height:10px;background:var(--bg);border:1px solid var(--border);border-radius:3px;display:inline-block"></span>
+          Not Answered (${total - answeredCount})
+        </div>
+      </div>
+    </div>
+
+  </div>`;
+}
+
+function selectExamChoice(qIdx, oIdx){
+  if(examSubmitted) return;
+  examAnswers[qIdx] = oIdx;
+  render();
+}
+
+function switchExamQuestion(targetIdx){
+  examCurrentQ = targetIdx;
+  render();
+  window.scrollTo({top: 0, behavior: 'smooth'});
+}
+
+function submitSecureExam(auto=false){
+  if(examSubmitted) return;
+  if(!auto && Object.keys(examAnswers).length < 25){
+    const left = 25 - Object.keys(examAnswers).length;
+    if(!confirm(`You still have ${left} unanswered questions. Are you sure you want to submit?`)){
+      return;
+    }
+  }
+
+  if(examTimerInterval) clearInterval(examTimerInterval);
+  examSubmitted = true;
+
+  const dayNum = route.day || 1;
+  const qBank = (typeof SPRINT_MCQ_BANK !== 'undefined' && SPRINT_MCQ_BANK[dayNum]) ? SPRINT_MCQ_BANK[dayNum] : [];
+  let correct = 0;
+  qBank.forEach((q, idx)=>{
+    if(examAnswers[idx] === q.ans) correct++;
+  });
+
+  const total = qBank.length;
+  const pct = Math.round((correct / total) * 100);
+  const earnedXp = Math.round((correct / total) * 35);
+
+  addBonusXp(earnedXp, `Completed Day ${dayNum} 30-Min Test (${correct}/${total})`, '⏱️');
+
+  if(pct >= 60 && !S.sprint?.[dayNum]){
+    S.sprint[dayNum] = Date.now();
+    save();
+  }
+
+  toast(`Assessment Submitted! You scored ${correct}/${total} (${pct}%)`, '', '🏆');
+  if(pct >= 70) confetti();
+  render();
+}
+
+function renderExamScorecard(dayNum, qBank){
+  let correct = 0;
+  qBank.forEach((q, idx)=>{
+    if(examAnswers[idx] === q.ans) correct++;
+  });
+  const total = qBank.length;
+  const pct = Math.round((correct / total) * 100);
+  const pass = pct >= 60;
+
+  return `
+  <div class="card" style="margin-bottom:18px;border-color:${pass?'var(--accent)':'var(--rose)'};background:rgba(15,23,42,0.95)">
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px">
+      <div>
+        <h3 style="margin:0 0 4px;font-size:18px;color:${pass?'var(--accent)':'var(--rose)'}">
+          ${pass ? '🎉 Assessment Passed! Day Complete' : '⚠️ Need More Revision'}
+        </h3>
+        <div style="font-size:12.5px;color:var(--muted)">
+          You correctly answered ${correct} out of ${total} questions · Accuracy: ${pct}%
+        </div>
+      </div>
+      <div style="display:flex;gap:10px">
+        <button class="btn ghost" onclick="startSprintSecureExam(${dayNum})">🔄 Retake 30-Min Test</button>
+        <button class="btn pri" onclick="go('sprint')">Return to 30-Day Sprint ›</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function exitSecureExamPrompt(){
+  if(!examSubmitted){
+    if(confirm('Are you sure you want to exit? Your timer and test progress will be lost.')){
+      if(examTimerInterval) clearInterval(examTimerInterval);
+      go('sprint');
+    }
+  } else {
+    go('sprint');
+  }
+}
+
+/* ---------- 📝 SPRINT MCQ QUIZ MODAL ENGINE ---------- */
+let currentQuizDay = 1;
+let currentQuizAnswers = {};
+
+function openSprintQuiz(dayNum){
+  currentQuizDay = dayNum;
+  currentQuizAnswers = {};
+  const item = SPRINT_ROADMAP.find(x=>x.day === dayNum) || SPRINT_ROADMAP[0];
+  const questions = (typeof SPRINT_MCQ_BANK !== 'undefined' && SPRINT_MCQ_BANK[dayNum]) ? SPRINT_MCQ_BANK[dayNum] : [];
+
+  if(!questions.length){
+    toast('Questions loading for Day ' + dayNum, '', 'ℹ️');
+    return;
+  }
+
+  const modalHtml = `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <div>
+        <h3 style="margin:0;font-size:17px">📝 Day ${dayNum} Practice: ${esc(item.title)}</h3>
+        <div class="m-sub" style="margin:2px 0 0">25 Medium &amp; Hard Placement Interview Questions (Attempt all to evaluate readiness)</div>
+      </div>
+      <button class="mini-btn" onclick="closeModal()">✕</button>
+    </div>
+
+    <div style="max-height:68vh;overflow-y:auto;padding-right:6px" id="sprint-quiz-container">
+      ${questions.map((q, idx)=>`
+        <div class="card" style="margin-bottom:14px;background:var(--card2);border:1px solid var(--border);padding:14px" id="q-card-${idx}">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+            <span style="font-weight:800;font-size:12px;color:var(--accent)">QUESTION ${idx + 1} OF ${questions.length}</span>
+            <span style="font-size:10.5px;background:rgba(245,158,11,0.15);color:var(--amber);padding:2px 7px;border-radius:999px;font-weight:700">${esc(q.diff || 'Medium-Hard')}</span>
+          </div>
+          <div style="font-size:13.5px;font-weight:600;margin-bottom:12px;color:var(--text);line-height:1.4">${esc(q.q)}</div>
+          
+          <div style="display:flex;flex-direction:column;gap:8px">
+            ${q.opts.map((opt, oIdx)=>`
+              <label style="display:flex;align-items:center;gap:10px;padding:9px 12px;background:var(--bg);border:1px solid var(--border);border-radius:10px;cursor:pointer;font-size:12.5px;transition:all .2s" id="opt-label-${idx}-${oIdx}">
+                <input type="radio" name="quiz_ans_${idx}" value="${oIdx}" onchange="selectQuizOption(${idx}, ${oIdx})">
+                <span>${esc(opt)}</span>
+              </label>
+            `).join('')}
+          </div>
+          <div id="q-exp-${idx}" style="display:none;margin-top:10px;padding:8px 12px;background:rgba(15,23,42,0.8);border-radius:8px;font-size:12px;color:var(--muted);border-left:3px solid var(--accent)">
+            <strong>💡 Explanation:</strong> ${esc(q.exp)}
+          </div>
+        </div>
+      `).join('')}
+    </div>
+
+    <div class="m-actions" style="margin-top:14px;justify-content:space-between;align-items:center">
+      <div id="quiz-live-count" style="font-size:12.5px;color:var(--muted)">0 of ${questions.length} Answered</div>
+      <div style="display:flex;gap:8px">
+        <button class="btn ghost" onclick="closeModal()">Close</button>
+        <button class="btn pri" id="submit-quiz-btn" onclick="submitSprintQuiz(${dayNum})">Submit &amp; View Scorecard 🚀</button>
+      </div>
+    </div>`;
+
+  openModal(modalHtml);
+}
+
+function selectQuizOption(qIdx, optIdx){
+  currentQuizAnswers[qIdx] = optIdx;
+  const questions = SPRINT_MCQ_BANK[currentQuizDay] || [];
+  const countEl = document.getElementById('quiz-live-count');
+  if(countEl) countEl.textContent = `${Object.keys(currentQuizAnswers).length} of ${questions.length} Answered`;
+
+  // highlight selected
+  for(let i=0; i<4; i++){
+    const lbl = document.getElementById(`opt-label-${qIdx}-${i}`);
+    if(lbl){
+      if(i === optIdx){
+        lbl.style.borderColor = 'var(--accent)';
+        lbl.style.background = 'var(--accent-soft)';
+      } else {
+        lbl.style.borderColor = 'var(--border)';
+        lbl.style.background = 'var(--bg)';
+      }
+    }
+  }
+}
+
+function submitSprintQuiz(dayNum){
+  const questions = SPRINT_MCQ_BANK[dayNum] || [];
+  let correct = 0;
+  let total = questions.length;
+
+  questions.forEach((q, idx)=>{
+    const selected = currentQuizAnswers[idx];
+    const isCorrect = selected === q.ans;
+    if(isCorrect) correct++;
+
+    // reveal explanation
+    const expEl = document.getElementById(`q-exp-${idx}`);
+    if(expEl) expEl.style.display = 'block';
+
+    // color options
+    for(let o=0; o<4; o++){
+      const lbl = document.getElementById(`opt-label-${idx}-${o}`);
+      if(lbl){
+        if(o === q.ans){
+          lbl.style.borderColor = 'var(--accent)';
+          lbl.style.background = 'rgba(34,197,94,0.2)';
+        } else if(selected === o && !isCorrect){
+          lbl.style.borderColor = 'var(--rose)';
+          lbl.style.background = 'rgba(244,63,94,0.18)';
+        }
+      }
+    }
+  });
+
+  const pct = Math.round((correct / total) * 100);
+  const earnedXp = Math.round((correct / total) * 25);
+  addBonusXp(earnedXp, `Completed Day ${dayNum} MCQ Assessment (${correct}/${total})`, '📝');
+  
+  // auto mark day if score >= 60%
+  if(pct >= 60 && !S.sprint?.[dayNum]){
+    S.sprint[dayNum] = Date.now();
+    save();
+  }
+
+  const submitBtn = document.getElementById('submit-quiz-btn');
+  if(submitBtn){
+    submitBtn.disabled = true;
+    submitBtn.textContent = `Score: ${correct}/${total} (${pct}%) · +${earnedXp} XP`;
+  }
+
+  toast(`Quiz completed! You scored ${correct}/${total} (+${earnedXp} XP)`, '', '🏆');
+  if(pct >= 75) confetti();
 }
 
 /* ---------- ⏱️ MOCK TEST SIMULATOR RENDERER ---------- */
@@ -1026,18 +1422,23 @@ Answers:
 Give score out of 100%, breakdown per section, key strengths, and 2 areas to improve. Keep answer structured and in 100% Pure English.`;
 
   try {
-    const apiKey = window.ENV_CONFIG?.GROQ_API_KEY || localStorage.getItem('groq_api_key') || "";
-    const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-      method: "POST",
-      headers: { "Authorization": `Bearer ${apiKey}`, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: "llama-3.3-70b-versatile",
-        messages: [{ role: "system", content: "You are an expert technical interviewer evaluating a 45-min placement test." }, { role: "user", content: prompt }],
-        temperature: 0.5, max_tokens: 600
-      })
-    });
-    const data = await res.json();
-    const evalText = data.choices?.[0]?.message?.content || "Evaluation completed cleanly! Good effort.";
+    let evalText = "";
+    if (typeof callAI === 'function') {
+      evalText = await callAI("mock", { company: route.comp || "Company", answers: { dsa0, dsa1, th0, th1, sql0 } });
+    } else {
+      const apiKey = window.ENV_CONFIG?.GROQ_API_KEY || localStorage.getItem('groq_api_key') || "";
+      const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+        method: "POST",
+        headers: { "Authorization": `Bearer ${apiKey}`, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: "llama-3.3-70b-versatile",
+          messages: [{ role: "system", content: "You are an expert technical interviewer evaluating a 45-min placement test." }, { role: "user", content: prompt }],
+          temperature: 0.5, max_tokens: 600
+        })
+      });
+      const data = await res.json();
+      evalText = data.choices?.[0]?.message?.content || "Evaluation completed cleanly! Good effort.";
+    }
     addBonusXp(25, `Completed 45-Min ${route.comp||'Company'} Mock Test`, '⏱️');
 
     resDiv.innerHTML = `
@@ -1046,7 +1447,7 @@ Give score out of 100%, breakdown per section, key strengths, and 2 areas to imp
       <div style="font-size:13px;line-height:1.6;white-space:pre-wrap">${esc(evalText)}</div>
     </div>`;
   } catch(e) {
-    resDiv.innerHTML = `<div class="card"><div style="color:var(--accent)">Evaluation completed cleanly! Earned +25 XP bonus for completing mock test.</div></div>`;
+    resDiv.innerHTML = `<div class="card"><div style="color:var(--rose)">${esc(e.message||"Evaluation completed cleanly! Earned +25 XP bonus for completing mock test.")}</div></div>`;
     addBonusXp(25, `Completed 45-Min ${route.comp||'Company'} Mock Test`, '⏱️');
   }
 }
@@ -1092,25 +1493,30 @@ Provide:
 Respond strictly in 100% Pure English with clean bullet formatting.`;
 
   try {
-    const apiKey = window.ENV_CONFIG?.GROQ_API_KEY || localStorage.getItem('groq_api_key') || "";
-    const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-      method: "POST",
-      headers: { "Authorization": `Bearer ${apiKey}`, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: "llama-3.3-70b-versatile",
-        messages: [{ role: "system", content: "You are a senior technical recruiter & ATS optimization expert." }, { role: "user", content: prompt }],
-        temperature: 0.5, max_tokens: 600
-      })
-    });
-    const data = await res.json();
-    const replyText = data.choices?.[0]?.message?.content || "Resume review completed.";
+    let replyText = "";
+    if (typeof callAI === 'function') {
+      replyText = await callAI("resume", { role, text });
+    } else {
+      const apiKey = window.ENV_CONFIG?.GROQ_API_KEY || localStorage.getItem('groq_api_key') || "";
+      const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+        method: "POST",
+        headers: { "Authorization": `Bearer ${apiKey}`, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: "llama-3.3-70b-versatile",
+          messages: [{ role: "system", content: "You are a senior technical recruiter & ATS optimization expert." }, { role: "user", content: prompt }],
+          temperature: 0.5, max_tokens: 600
+        })
+      });
+      const data = await res.json();
+      replyText = data.choices?.[0]?.message?.content || "Resume review completed.";
+    }
     resDiv.innerHTML = `
     <div class="card" style="border-color:var(--accent)">
       <h3 style="font-size:15px;color:var(--accent);margin-bottom:10px">🎯 Milo 🐾 ATS & Resume Analysis Report</h3>
       <div style="font-size:13px;line-height:1.6;white-space:pre-wrap">${esc(replyText)}</div>
     </div>`;
   } catch(e) {
-    resDiv.innerHTML = `<div class="card"><div style="color:var(--rose)">Network error while analyzing resume. Please try again.</div></div>`;
+    resDiv.innerHTML = `<div class="card"><div style="color:var(--rose)">${esc(e.message||"Network error while analyzing resume. Please try again.")}</div></div>`;
   }
 }
 
@@ -1180,18 +1586,23 @@ Provide:
 Respond strictly in 100% Pure English.`;
 
   try {
-    const apiKey = window.ENV_CONFIG?.GROQ_API_KEY || localStorage.getItem('groq_api_key') || "";
-    const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-      method: "POST",
-      headers: { "Authorization": `Bearer ${apiKey}`, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: "llama-3.3-70b-versatile",
-        messages: [{ role: "system", content: "You are an HR interview coach." }, { role: "user", content: prompt }],
-        temperature: 0.5, max_tokens: 500
-      })
-    });
-    const data = await res.json();
-    const evalText = data.choices?.[0]?.message?.content || "Great answer!";
+    let evalText = "";
+    if (typeof callAI === 'function') {
+      evalText = await callAI("hr", { question: item.q, answer: ans });
+    } else {
+      const apiKey = window.ENV_CONFIG?.GROQ_API_KEY || localStorage.getItem('groq_api_key') || "";
+      const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+        method: "POST",
+        headers: { "Authorization": `Bearer ${apiKey}`, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: "llama-3.3-70b-versatile",
+          messages: [{ role: "system", content: "You are an HR interview coach." }, { role: "user", content: prompt }],
+          temperature: 0.5, max_tokens: 500
+        })
+      });
+      const data = await res.json();
+      evalText = data.choices?.[0]?.message?.content || "Great answer!";
+    }
     addBonusXp(15, `Practiced HR Question: ${item.q.slice(0,25)}...`, '🎙️');
 
     resDiv.innerHTML = `
@@ -1199,7 +1610,7 @@ Respond strictly in 100% Pure English.`;
       <b style="color:var(--accent)">🐾 Milo HR STAR Feedback:</b><br>${esc(evalText)}
     </div>`;
   } catch(e) {
-    resDiv.innerHTML = `<div style="color:var(--accent);font-size:12px">Answer recorded! Earned +15 XP bonus.</div>`;
+    resDiv.innerHTML = `<div style="color:var(--rose);font-size:12px">${esc(e.message||"Answer recorded! Earned +15 XP bonus.")}</div>`;
     addBonusXp(15, `Practiced HR Question`, '🎙️');
   }
 }
@@ -1257,21 +1668,27 @@ async function sendMiloMsg(){
   miloChatHistory.push({ role: "user", content: text });
 
   try {
-    const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${apiKey}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        model: "llama-3.3-70b-versatile",
-        messages: [{ role: "system", content: systemPrompt }, ...miloChatHistory.slice(-6)],
-        temperature: 0.6,
-        max_tokens: 600
-      })
-    });
-    const data = await res.json();
-    const botReply = data.choices?.[0]?.message?.content || "Milo is here to help! Ask me anything about placement prep. 🐾";
+    let botReply = "";
+    if (typeof callAI === 'function') {
+      botReply = await callAI("milo", { messages: miloChatHistory });
+    } else {
+      const apiKey = window.ENV_CONFIG?.GROQ_API_KEY || localStorage.getItem('groq_api_key') || "";
+      const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${apiKey}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          model: "llama-3.3-70b-versatile",
+          messages: [{ role: "system", content: systemPrompt }, ...miloChatHistory.slice(-6)],
+          temperature: 0.6,
+          max_tokens: 600
+        })
+      });
+      const data = await res.json();
+      botReply = data.choices?.[0]?.message?.content || "Milo is here to help! Ask me anything about placement prep. 🐾";
+    }
     miloChatHistory.push({ role: "assistant", content: botReply });
 
     const loadEl = document.getElementById(loadingId);
@@ -1281,7 +1698,7 @@ async function sendMiloMsg(){
     }
   } catch(err) {
     const loadEl = document.getElementById(loadingId);
-    if(loadEl) loadEl.querySelector('.milo-bubble').innerHTML = "Oops! Milo couldn't connect right now. Please check your API key or network. 🐶";
+    if(loadEl) loadEl.querySelector('.milo-bubble').innerHTML = esc(err.message || "Oops! Milo couldn't connect right now. Please check your connection. 🐶");
   }
   body.scrollTop = body.scrollHeight;
 }

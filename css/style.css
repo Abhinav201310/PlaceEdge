@@ -338,3 +338,70 @@ body:not(.anim) *{transition:none!important;animation:none!important}
 #milo-send-btn{width:36px;height:36px;border-radius:10px;background:var(--accent);color:#052e12;display:grid;place-items:center;font-size:16px;font-weight:800;transition:all .2s}
 #milo-send-btn:hover{transform:scale(1.08);background:#4ade80}
 
+/* ---------- 👤 ACCOUNT CHIP & SYNC STATUS ---------- */
+.acct-av{width:22px;height:22px;border-radius:50%;object-fit:cover;display:inline-block}
+.acct-av-txt{background:var(--accent-soft);color:var(--accent);display:inline-grid;place-items:center;font-size:11px;font-weight:800}
+.acct-name{max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sync-dot{width:7px;height:7px;border-radius:50%;display:inline-block;background:var(--faint);transition:background .2s}
+.sync-dot.syncing{background:var(--amber);animation:syncPulse 1s infinite alternate}
+.sync-dot.ok{background:var(--accent)}
+.sync-dot.error{background:var(--rose)}
+.sync-dot.offline{background:var(--faint)}
+@keyframes syncPulse{from{opacity:.4}to{opacity:1}}
+
+/* ---------- 🔐 AUTH MODAL STYLES ---------- */
+.auth-google{width:100%;display:flex;align-items:center;justify-content:center;gap:10px;padding:11px;font-size:13px;font-weight:700;margin-bottom:14px}
+.auth-or{display:flex;align-items:center;text-align:center;color:var(--faint);font-size:11px;text-transform:uppercase;letter-spacing:1px;margin:12px 0}
+.auth-or::before,.auth-or::after{content:'';flex:1;border-bottom:1px solid var(--border)}
+.auth-or span{padding:0 10px}
+.auth-label{display:block;font-size:11.5px;font-weight:700;color:var(--muted);margin:8px 0 4px}
+.auth-input{width:100%;margin-bottom:8px}
+.auth-msg{font-size:12px;margin:8px 0;min-height:16px;line-height:1.4}
+.auth-msg.err{color:var(--rose)}
+.auth-msg.ok{color:var(--accent)}
+.auth-foot{margin-top:14px;font-size:11.5px;color:var(--faint);line-height:1.4;text-align:center}
+
+/* ---------- 🏆 LEADERBOARD STYLES ---------- */
+.lb-list{display:flex;flex-direction:column;gap:8px}
+.lb-row{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:12px;background:var(--card2);border:1px solid var(--border);transition:all .2s}
+.lb-row.me{border-color:rgba(34,197,94,.5);background:rgba(34,197,94,.08)}
+.lb-rank{font-size:15px;font-weight:900;width:32px;text-align:center;color:var(--muted)}
+.lb-name{flex:1;font-weight:700;font-size:13.5px}
+.lb-you{background:var(--accent);color:#052e12;font-size:9.5px;font-weight:900;padding:2px 6px;border-radius:6px;margin-left:6px;vertical-align:middle}
+.lb-meta{font-size:11.5px;color:var(--muted);font-weight:400;margin-top:2px}
+.lb-xp{font-size:16px;font-weight:900;color:var(--accent);text-align:right}
+.lb-xp small{font-size:11px;color:var(--muted);font-weight:700}
+.lb-group-bar{margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.lb-code{font-family:monospace;background:rgba(15,23,42,.6);border:1px dashed var(--accent);color:var(--accent);padding:4px 8px;border-radius:6px;font-weight:900;letter-spacing:2px;font-size:14px}
+.lb-loading{text-align:center;color:var(--muted);padding:24px}
+
+/* ---------- 🛡️ SECURE ASSESSMENT EXAM ENVIRONMENT ---------- */
+.exam-header{position:sticky;top:0;z-index:40;background:rgba(15,23,42,0.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:12px 18px;border-radius:16px;margin-bottom:18px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px}
+.exam-timer-box{display:flex;align-items:center;gap:10px;background:var(--card);padding:8px 16px;border-radius:12px;border:1px solid var(--border)}
+.exam-timer-digits{font-family:monospace;font-size:19px;font-weight:900;color:var(--accent);letter-spacing:1px}
+.exam-timer-digits.urgent{color:var(--rose);animation:timerPulse 1s infinite alternate}
+@keyframes timerPulse{from{opacity:0.6}to{opacity:1}}
+.exam-nav-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.exam-nav-btn{padding:7px 0;text-align:center;border-radius:8px;font-weight:700;font-size:11.5px;background:var(--bg);border:1px solid var(--border);color:var(--muted);cursor:pointer;transition:all .15s}
+.exam-nav-btn:hover{color:var(--text);border-color:var(--accent)}
+.exam-nav-btn.active{border-color:var(--blue);background:rgba(56,189,248,0.18);color:var(--blue)}
+.exam-nav-btn.answered{background:var(--accent-soft);color:var(--accent);border-color:rgba(34,197,94,0.4)}
+.opt-choice-row{display:flex;align-items:center;gap:12px;padding:12px 16px;background:var(--bg);border:1.5px solid var(--border);border-radius:12px;cursor:pointer;font-size:13.5px;transition:all .2s;margin-bottom:8px}
+.opt-choice-row:hover{border-color:rgba(34,197,94,0.3);background:var(--card2)}
+.opt-choice-row.selected{border-color:var(--accent);background:var(--accent-soft)}
+.opt-badge{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;font-size:11px;font-weight:800;background:var(--card);border:1px solid var(--border);color:var(--muted)}
+.opt-choice-row.selected .opt-badge{background:var(--accent);color:#052e12;border-color:var(--accent)}
+
+/* Responsive adjustments for exam mode */
+.exam-layout{display:grid;grid-template-columns:minmax(0, 2.2fr) minmax(250px, 1fr);gap:18px;align-items:start}
+@media (max-width: 860px){
+  .exam-layout{grid-template-columns:1fr !important}
+  .exam-header{flex-direction:column;align-items:stretch !important;gap:12px;padding:12px 14px}
+  .exam-header > div:last-child{justify-content:space-between}
+  .exam-nav-grid{grid-template-columns:repeat(7, 1fr)}
+}
+@media (max-width: 480px){
+  .exam-nav-grid{grid-template-columns:repeat(5, 1fr)}
+  .exam-timer-digits{font-size:16px}
+}
+

@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PlaceEdge — Admin Portal</title>
+  <link rel="stylesheet" href="css/style.css">
+  <script src="config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/data.js"></script>
+  <style>
+    .admin-container { max-width: 900px; margin: 40px auto; padding: 0 20px; }
+    .status-badge { display: inline-block; padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; }
+    .status-badge.admin { background: rgba(34,197,94,0.15); color: var(--accent); }
+    .status-badge.guest { background: rgba(244,63,94,0.15); color: var(--rose); }
+    .pre-box { background: #0f1a2e; border: 1px solid var(--border); border-radius: 12px; padding: 14px; color: var(--text); font-family: monospace; font-size: 12px; max-height: 250px; overflow-y: auto; white-space: pre-wrap; }
+  </style>
+</head>
+<body class="anim">
+
+<div class="admin-container">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px">
+    <div style="display:flex;align-items:center;gap:12px">
+      <a href="index.html" class="back-btn" style="text-decoration:none;display:grid">‹</a>
+      <div>
+        <h1 style="font-size:24px;font-weight:900">🛠️ PlaceEdge Admin Panel</h1>
+        <div style="font-size:13px;color:var(--muted)">Publish verified syllabus, problems &amp; companies into Supabase cloud</div>
+      </div>
+    </div>
+    <div id="admin-user-status"></div>
+  </div>
+
+  <div id="admin-login-card" class="card" style="margin-bottom:20px;display:none">
+    <h3>🔐 Admin Authentication Required</h3>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:14px">Log in with your administrator account to push data updates and manage platform content.</p>
+    <div style="display:flex;gap:10px;max-width:400px;flex-direction:column">
+      <input type="email" id="adm-email" class="searchbox" placeholder="admin@example.com">
+      <input type="password" id="adm-pass" class="searchbox" placeholder="Password">
+      <button class="btn pri" onclick="adminLogin()">Sign In as Admin</button>
+      <div id="adm-msg" style="font-size:12px"></div>
+    </div>
+  </div>
+
+  <div id="admin-main-panel" style="display:none">
+    <div class="card" style="margin-bottom:20px">
+      <h3 style="margin-bottom:6px">📦 Bundled Syllabus &amp; Company Data Digest</h3>
+      <div style="font-size:13px;color:var(--muted);margin-bottom:16px">This action reads current JS bundle (<code>data.js</code>) and publishes it directly into Supabase table <code>public.content</code>, triggering server-side XP validation rules.</div>
+      
+      <div class="grid g4" style="margin-bottom:18px">
+        <div class="card" style="padding:12px;background:var(--card2)">
+          <div style="font-size:12px;color:var(--muted)">Theory Subjects</div>
+          <div style="font-size:20px;font-weight:900;color:var(--accent)" id="cnt-subj">0</div>
+        </div>
+        <div class="card" style="padding:12px;background:var(--card2)">
+          <div style="font-size:12px;color:var(--muted)">DSA Folders</div>
+          <div style="font-size:20px;font-weight:900;color:var(--blue)" id="cnt-dsa">0</div>
+        </div>
+        <div class="card" style="padding:12px;background:var(--card2)">
+          <div style="font-size:12px;color:var(--muted)">Companies</div>
+          <div style="font-size:20px;font-weight:900;color:var(--amber)" id="cnt-comp">0</div>
+        </div>
+        <div class="card" style="padding:12px;background:var(--card2)">
+          <div style="font-size:12px;color:var(--muted)">Curated Sheets</div>
+          <div style="font-size:20px;font-weight:900;color:var(--violet)" id="cnt-sheets">0</div>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+        <button class="btn pri" id="publish-btn" onclick="publishBundledContent()">🚀 Publish Bundled Content to Cloud</button>
+        <button class="btn ghost" onclick="inspectCloudContent()">🔍 Verify Cloud Content</button>
+      </div>
+      <div id="publish-status" style="margin-top:14px;font-size:13px"></div>
+    </div>
+
+    <div class="card">
+      <h3 style="margin-bottom:6px">📊 Active Cloud Content Manifest</h3>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:12px">Last recorded timestamp &amp; preview from Supabase:</div>
+      <div class="pre-box" id="cloud-preview">Loading cloud data status...</div>
+    </div>
+  </div>
+</div>
+
+<div id="toasts"></div>
+
+<script>
+  let sb = null;
+  let currentUser = null;
+
+  function toast(msg, cls='', ico='✅'){
+    const box = document.getElementById('toasts');
+    const el = document.createElement('div'); el.className = 'toast ' + cls;
+    el.innerHTML = `<span style="font-size:17px">${ico}</span><span>${msg}</span>`;
+    box.appendChild(el);
+    setTimeout(() => { el.classList.add('out'); setTimeout(() => el.remove(), 320); }, 3200);
+  }
+
+  async function initAdmin(){
+    const c = window.ENV_CONFIG || {};
+    if (!c.SUPABASE_URL || !c.SUPABASE_ANON_KEY || !window.supabase) {
+      document.getElementById('admin-user-status').innerHTML = `<span class="status-badge guest">⚠️ Cloud Not Configured</span>`;
+      document.getElementById('admin-login-card').style.display = 'block';
+      document.getElementById('adm-msg').innerHTML = `<span style="color:var(--rose)">Configure <code>config.js</code> with SUPABASE_URL &amp; SUPABASE_ANON_KEY first.</span>`;
+      return;
+    }
+
+    sb = window.supabase.createClient(c.SUPABASE_URL, c.SUPABASE_ANON_KEY);
+    const { data: { session } } = await sb.auth.getSession();
+    handleSession(session);
+
+    sb.auth.onAuthStateChange((_, session) => {
+      handleSession(session);
+    });
+
+    // Populate counts from data.js
+    document.getElementById('cnt-subj').textContent = (typeof SUBJECTS !== 'undefined') ? SUBJECTS.length : 0;
+    document.getElementById('cnt-dsa').textContent = (typeof DSA !== 'undefined') ? DSA.length : 0;
+    document.getElementById('cnt-comp').textContent = (typeof COMPANIES !== 'undefined') ? COMPANIES.length : 0;
+    document.getElementById('cnt-sheets').textContent = (typeof SHEETS !== 'undefined') ? Object.keys(SHEETS).length : 0;
+  }
+
+  async function handleSession(session){
+    currentUser = session ? session.user : null;
+    const statDiv = document.getElementById('admin-user-status');
+    const loginCard = document.getElementById('admin-login-card');
+    const mainPanel = document.getElementById('admin-main-panel');
+
+    if (!currentUser) {
+      statDiv.innerHTML = `<span class="status-badge guest">Not Logged In</span>`;
+      loginCard.style.display = 'block';
+      mainPanel.style.display = 'none';
+      return;
+    }
+
+    // Check is_admin role from profiles table
+    const { data: prof, error } = await sb.from('profiles').select('is_admin, display_name').eq('id', currentUser.id).single();
+    if (error || !prof?.is_admin) {
+      statDiv.innerHTML = `<span class="status-badge guest">Logged in as Non-Admin</span> <button class="mini-btn" onclick="sb.auth.signOut()">Logout</button>`;
+      loginCard.style.display = 'block';
+      mainPanel.style.display = 'none';
+      document.getElementById('adm-msg').innerHTML = `<span style="color:var(--rose)">Your account (${currentUser.email}) does not have <code>is_admin = true</code> in public.profiles. Execute the SQL command shown in schema.sql to grant access.</span>`;
+      return;
+    }
+
+    statDiv.innerHTML = `<span class="status-badge admin">👑 Admin: ${prof.display_name || currentUser.email}</span> <button class="mini-btn" onclick="sb.auth.signOut()">Logout</button>`;
+    loginCard.style.display = 'none';
+    mainPanel.style.display = 'block';
+    inspectCloudContent();
+  }
+
+  async function adminLogin(){
+    const email = document.getElementById('adm-email').value.trim();
+    const password = document.getElementById('adm-pass').value;
+    const msg = document.getElementById('adm-msg');
+    msg.innerHTML = "Authenticating...";
+    const { error } = await sb.auth.signInWithPassword({ email, password });
+    if(error){ msg.innerHTML = `<span style="color:var(--rose)">${error.message}</span>`; }
+  }
+
+  async function publishBundledContent(){
+    const btn = document.getElementById('publish-btn');
+    const stat = document.getElementById('publish-status');
+    btn.disabled = true;
+    stat.innerHTML = "Publishing syllabus, DSA &amp; companies into cloud database...";
+
+    try {
+      const payload = {
+        subjects: SUBJECTS,
+        dsa: DSA,
+        sheets: SHEETS,
+        companies: COMPANIES
+      };
+
+      const { data, error } = await sb.rpc('admin_publish_content', { p_data: payload });
+      if (error) throw error;
+
+      stat.innerHTML = `<span style="color:var(--accent);font-weight:700">✅ Published successfully! Updated timestamp: ${new Date(data).toLocaleString()}</span>`;
+      toast('Content published to Supabase!', '', '🚀');
+      inspectCloudContent();
+    } catch(err) {
+      stat.innerHTML = `<span style="color:var(--rose)">Failed to publish: ${err.message}</span>`;
+      toast('Publish failed: ' + err.message, '', '⚠️');
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  async function inspectCloudContent(){
+    const box = document.getElementById('cloud-preview');
+    box.textContent = "Fetching active manifest...";
+    try {
+      const { data, error } = await sb.from('content').select('id, updated_at, updated_by').eq('id', 'main').maybeSingle();
+      if (error) throw error;
+      if (!data) {
+        box.textContent = "No content record found in public.content table. Click 'Publish Bundled Content' above to initialize.";
+        return;
+      }
+      box.textContent = JSON.stringify(data, null, 2);
+    } catch(e) {
+      box.textContent = "Error fetching preview: " + e.message;
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', initAdmin);
+</script>
+
+</body>
+</html>
